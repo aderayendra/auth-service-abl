@@ -1,6 +1,5 @@
 package id.aderayendra.authservice.controller;
 
-
 import id.aderayendra.authservice.dto.AuthResponse;
 import id.aderayendra.authservice.dto.LoginRequest;
 import id.aderayendra.authservice.dto.RegisterRequest;

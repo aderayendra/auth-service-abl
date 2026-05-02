@@ -13,6 +13,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class AuthService {
 
@@ -41,8 +44,15 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = userRepository.findByUsername(userDetails.getUsername()).orElse(null);
 
-        return jwtUtil.generateToken(userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", userDetails.getAuthorities().iterator().next().getAuthority());
+        if (user != null) {
+            claims.put("userId", user.getId());
+        }
+
+        return jwtUtil.generateTokenWithClaims(claims, userDetails.getUsername());
     }
 
     public User register(RegisterRequest registerRequest) {
@@ -62,7 +72,7 @@ public class AuthService {
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setFullName(registerRequest.getFullName());
-        user.setRole("USER");
+        user.setRole(registerRequest.getRole());
         user.setIsActive(true);
 
         return userRepository.save(user);
@@ -75,5 +85,9 @@ public class AuthService {
 
     public Boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
+    }
+
+    public String getUsernameFromToken(String token) {
+        return jwtUtil.extractUsername(token);
     }
 }

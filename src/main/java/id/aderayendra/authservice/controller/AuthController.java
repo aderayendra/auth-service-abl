@@ -33,6 +33,7 @@ public class AuthController {
             AuthResponse response = new AuthResponse(
                     token,
                     "Bearer",
+                    user.getId(),
                     user.getUsername(),
                     user.getEmail(),
                     user.getRole(),
@@ -62,7 +63,9 @@ public class AuthController {
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
                 Boolean isValid = authService.validateToken(token);
-                return ResponseEntity.ok(isValid);
+                if (isValid) {
+                    return ResponseEntity.ok(authService.getCurrentUser(authService.getUsernameFromToken(token)));
+                }
             }
             return ResponseEntity.badRequest().body("Invalid token format");
         } catch (Exception e) {
